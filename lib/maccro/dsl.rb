@@ -1,11 +1,58 @@
-module Maccro
-  module DSL
-  end
-end
-
+require_relative 'dsl/node'
 require_relative 'dsl/value'
 require_relative 'dsl/assign'
 require_relative 'dsl/expression'
+
+module Maccro
+  module DSL
+    def self.matcher(code_snippet)
+      ast = RubyVM::AbstractSyntaxTree.parse(code_snippet)
+      # Top level node should be SCOPE, and children[2] will be the first expression node
+      return ast_node_to_dsl_node(ast.children[2])
+    end
+
+    def self.ast_node_to_dsl_node(ast_node)
+      unless ast_node.is_a?(RubyVM::AbstractSyntaxTree::Node)
+        if ast_node.is_a?(Array)
+          ast_node.times do |i|
+            ast_node[i] = ast_node_to_dsl_node(ast_node[i])
+          end
+        end
+        return ast_node
+      end
+
+      # ast_node.is_a?(RubyVM::AbstractSyntaxTree::Node)
+      ast_node.extend ASTNodeWrapper
+      if ast_node.type == :VCALL && self.placeholder_name?(ast_node.children.first)
+        self.placeholder_to_matcher_node(ast_node)
+      else
+        ast_node.children.each_with_index do |n, i|
+          ast_node.children[i] = ast_node_to_dsl_node(n)
+        end
+        ast_node
+      end
+    end
+
+    def self.placeholder_name?(sym)
+      # Expression: "eN"
+      # Value: "vN"
+      # N index is 1 origin
+      sym.to_s =~ /^[ev][1-9]\d*$/
+    end
+
+    def self.placeholder_to_matcher_node(placeholder_vcall)
+      name = placeholder_vcall.children.first.to_s
+      case name
+      when /^v([1-9]\d*)$/
+        Value.new(name, placeholder_vcall.to_code_range)
+      when /^e([1-9]\d*)$/
+        Expression.new(name, placeholder_vcall.to_code_range)
+      else
+        raise "BUG: unregistered placeholder name `#{name}`"
+      end
+    end
+  end
+end
 
 ###
 # List of AST nodes: from node_children() in ast.c

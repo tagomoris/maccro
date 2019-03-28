@@ -19,7 +19,7 @@ module Maccro
     end
 
     class BeginExp < Node
-      def type; :BEGIN; end
+      def type; :"BEGIN"; end
     end
 
     class AndExp < Node
@@ -114,8 +114,8 @@ module Maccro
       def type; DEFINED; end
     end
 
-    class Expression
-      SUBTYPES = [
+    class Expression < NodeGroup
+      SUB_TYPES = [
         Value, Assignment,
         IfExp, UnlessExp, CaseExp, BeginExp, BeginExp, AndExp, OrExp,
         CallExp, OperatorCallExp, SafeCallExp, FunctionCallExp, VCallExp,
@@ -124,10 +124,10 @@ module Maccro
         DefineMethod, DefineSingletonMethod,
         Colon2Exp, Colon3Exp, Dot2Exp, Dot3Exp, Flip2Exp, Flip3Exp,
         DefinedExp,
-      ]
+      ].freeze
 
-      def match?(node)
-        SUBTYPES.any?{|s| s.match?(node) }
+      def subtypes
+        SUB_TYPES
       end
     end
   end

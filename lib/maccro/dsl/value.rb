@@ -17,7 +17,7 @@ module Maccro
     end
 
     class InstanceVariable < Node
-      def type: :IVAR; end
+      def type; :IVAR; end
     end
 
     class ClassVariable < Node
