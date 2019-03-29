@@ -2,21 +2,24 @@ module Maccro
   module CodeUtil
     def self.code_position_to_index(source, lineno, column)
       source_lines = source.lines # including newline at the end of line
+      if source_lines.size < lineno
+        raise "too few lines for specified position: lineno:#{lineno}, column:#{column}"
+      end
       counter = 1
       index = 0
       while counter < lineno
         index += source_lines.shift.size
+        counter += 1
       end
       if source_lines.empty?
         raise "too few lines for specified position: lineno:#{lineno}, column:#{column}"
       end
       # column is 0 origin
-      if source_lines.first.size >= column
-        if source_lines.first.size == 0 && column == 0
-          # the last line, and position is EOF. no problem.
-        else
-          raise "too few chars in the line for specified position: lineno:#{lineno}, column:#{column}"
-        end
+      if source_lines.first.size < 1
+        raise "empty line at the end of source"
+      end
+      if source_lines.first.size < column + 1
+        raise "too few chars in the line for specified position: lineno:#{lineno}, column:#{column}"
       end
       return index + column
     end
