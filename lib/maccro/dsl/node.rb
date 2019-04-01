@@ -28,7 +28,7 @@ module Maccro
       def capture(ast, placeholders)
         self.children.each_with_index do |c, i|
           if c.is_a?(ASTNodeWrapper)
-            c.capture(node.children[i], placeholders)
+            c.capture(ast.children[i], placeholders)
           end
         end
       end
@@ -52,11 +52,15 @@ module Maccro
         @code_range
       end
 
+      def type
+        :MACCRO_NODE
+      end
+
       def children
         []
       end
 
-      def capture(ast, placehodlers)
+      def capture(ast, placeholders)
         placeholders[@name] = ast.to_code_range
       end
     end

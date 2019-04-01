@@ -37,7 +37,7 @@ module Maccro
       # Expression: "eN"
       # Value: "vN"
       # N index is 1 origin
-      sym.to_s =~ /^[ev][1-9]\d*$/
+      (sym.to_s =~ /^[ev][1-9]\d*$/).!.!
     end
 
     def self.placeholder_to_matcher_node(placeholder_vcall)

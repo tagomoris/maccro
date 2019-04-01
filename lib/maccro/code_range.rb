@@ -15,6 +15,13 @@ module Maccro
       @last_column = last_column
     end
 
+    def ==(other)
+      @first_lineno == other.first_lineno &&
+        @first_column == other.first_column &&
+        @last_lineno == other.last_lineno &&
+        @last_column == other.last_column
+    end
+
     def <=>(other)
       if @first_lineno < other.first_lineno
         -1
