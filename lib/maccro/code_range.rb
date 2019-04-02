@@ -52,6 +52,10 @@ module Maccro
 
     def source(path)
       source = File.open(path){|f| f.read } # open as binary?
+      get(source)
+    end
+
+    def get(source)
       range = CodeUtil.code_range_to_range(source, self)
       source[range]
     end

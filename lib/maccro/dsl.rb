@@ -2,11 +2,12 @@ require_relative 'dsl/node'
 require_relative 'dsl/value'
 require_relative 'dsl/assign'
 require_relative 'dsl/expression'
+require_relative 'code_util'
 
 module Maccro
   module DSL
     def self.matcher(code_snippet)
-      ast = RubyVM::AbstractSyntaxTree.parse(code_snippet)
+      ast = CodeUtil.parse_to_ast(code_snippet)
       # Top level node should be SCOPE, and children[2] will be the first expression node
       return ast_node_to_dsl_node(ast.children[2])
     end
@@ -24,13 +25,13 @@ module Maccro
       # ast_node.is_a?(RubyVM::AbstractSyntaxTree::Node)
       ast_node.extend ASTNodeWrapper
       if ast_node.type == :VCALL && self.placeholder_name?(ast_node.children.first)
-        self.placeholder_to_matcher_node(ast_node)
-      else
-        ast_node.children.each_with_index do |n, i|
-          ast_node.children[i] = ast_node_to_dsl_node(n)
-        end
-        ast_node
+        return self.placeholder_to_matcher_node(ast_node)
       end
+
+      ast_node.children.each_with_index do |n, i|
+        ast_node.children[i] = ast_node_to_dsl_node(n)
+      end
+      ast_node
     end
 
     def self.placeholder_name?(sym)

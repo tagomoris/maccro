@@ -2,6 +2,7 @@ require_relative "./maccro/version"
 
 require_relative "./maccro/dsl"
 require_relative "./maccro/rule"
+require_relative "./maccro/code_util"
 
 class X
   def yay(v)
@@ -32,25 +33,28 @@ module Maccro
       raise "Native method can't be redefined"
     end
 
-    ast = RubyVM::AbstractSyntaxTree.of(method)
+    ast = CodeUtil.proc_to_ast(method)
+    # This node should be SCOPE node (just under DEFN or DEFS)
+    # But its code range is equal to code range of DEFN/DEFS
+    CodeUtil.extend_tree_with_wrapper(ast)
 
     @@dic.each_pair do |name, rule|
       if matched = rule.match(ast)
-        pp(here: "matched")
         mojule = method.owner
-        iseq = RubyVM::InstructionSequence.of(method)
+        iseq = CodeUtil.proc_to_iseq(method)
         path = iseq.absolute_path
         if !path # STDIN or -e
           raise "Methods not in files can't be redefined"
         end
 
-        method_range = ast.to_code_range
-        source = matched.rewrite(method_range.source(path))
+        source = matched.rewrite(File.read(path))
+        updated_method_node = CodeUtil.get_method_node(CodeUtil.parse_to_ast(source), method.name, ast.first_lineno, ast.first_column)
+        updated_method_code_range = CodeRange.from_node(updated_method_node)
+        updated_method_source = updated_method_code_range.get(source)
 
-        eval_source = (" " * (method_range.first_column)) + source # for same indentation
-        pp(here: "going to eval", path: path, lineno: method_range.first_lineno)
+        eval_source = (" " * (updated_method_node.first_column)) + updated_method_source # for same indentation
         puts eval_source
-        # mojule.module_eval(eval_source, path, method_range.first_lineno)
+        mojule.module_eval(eval_source, path, updated_method_node.first_lineno)
         return # TODO: currently, just one rule can rewrite a method
       end
     end

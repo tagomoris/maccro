@@ -60,14 +60,16 @@ module Maccro
         []
       end
 
+      def match?(node)
+        if self.class.respond_to?(:match?)
+          self.class.match?(node)
+        else
+          super
+        end
+      end
+
       def capture(ast, placeholders)
         placeholders[@name] = ast.to_code_range
-      end
-    end
-
-    class NodeGroup < Node
-      def match?(node)
-        subtypes.any?{|s| s.match?(node) }
       end
     end
   end
