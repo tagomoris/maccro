@@ -1,34 +1,33 @@
 # Maccro
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/maccro`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
-
-## Installation
-
-Add this line to your application's Gemfile:
+Maccro is a library to introduce macro (dynamic code rewriting), written in Ruby 100%.
 
 ```ruby
-gem 'maccro'
+Maccro.register(:double_littler_than, 'e1 < e2 < e3', 'e1 < e2 && e2 < e3')
+
+# This rewrites this code
+if 1 < v < 2
+  "hit!"
+end
+
+# To this (valid Ruby) code dynamically
+if 1 < v && v < 2
+  "hit!"
+end
 ```
 
-And then execute:
+### LIMITATION
 
-    $ bundle
+Maccro can:
 
-Or install it yourself as:
+* run with Ruby 2.6 or later
+* rewrite code, only written in methods using `def` keyword
 
-    $ gem install maccro
+TODO: add other limitations
 
 ## Usage
 
 TODO: Write usage instructions here
-
-## Development
-
-After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
-
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
 ## Contributing
 
