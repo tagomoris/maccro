@@ -27,7 +27,7 @@ class DSLTest < ::Test::Unit::TestCase
   end
 
   def ast_node(target)
-    m = RubyVM::AbstractSyntaxTree.of(target).children[2]
+    m = proc_to_ast(target).children[2]
     m.extend Maccro::DSL::ASTNodeWrapper
     m
   end
@@ -38,7 +38,7 @@ class DSLTest < ::Test::Unit::TestCase
   end
 
   test 'ast_node_to_dsl_node' do
-    ast = RubyVM::AbstractSyntaxTree.of(->(){ 1 || v1 })
+    ast = proc_to_ast(->(){ 1 || v1 })
     node = Maccro::DSL::ast_node_to_dsl_node(ast)
 
     n = node
