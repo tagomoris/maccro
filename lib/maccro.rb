@@ -54,6 +54,7 @@ module Maccro
 
         eval_source = (" " * (updated_method_node.first_column)) + updated_method_source # for same indentation
         puts eval_source
+        # TODO: consider $VERBOSE ?
         mojule.module_eval(eval_source, path, updated_method_node.first_lineno)
         return # TODO: currently, just one rule can rewrite a method
       end
@@ -62,6 +63,7 @@ module Maccro
 end
 
 Maccro.register(:double_greater_than, 'e1 < e2 < e3', 'e1 < e2 && e2 < e3')
+# Maccro.register(:double_greater_than, 'e1 < e2 < e3', 'e1 < e2 && e2 < e3', safe_reference: true)
 # Maccro.register(:activerecord_where_equal, 'v1 = v2', 'v1 => v2', under: 'e.where($TARGET)')
 
 Maccro.apply(X, X.instance_method(:yay))
