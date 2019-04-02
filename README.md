@@ -16,6 +16,8 @@ if 1 < v && v < 2
 end
 ```
 
+Maccro comes from "Macro" and "Makkuro" (pure black in Japanese).
+
 ### LIMITATION
 
 Maccro can:
