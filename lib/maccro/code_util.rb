@@ -34,20 +34,24 @@ module Maccro
       source[code_range_to_range(source, code_range)]
     end
 
-    def self.parse_to_ast(code)
+    def self.suppress_warning
       v = $VERBOSE
       $VERBOSE = nil
-      RubyVM::AbstractSyntaxTree.parse(code)
+      yield
     ensure
       $VERBOSE = v
     end
 
+    def self.parse_to_ast(code)
+      suppress_warning do
+        RubyVM::AbstractSyntaxTree.parse(code)
+      end
+    end
+
     def self.proc_to_ast(block)
-      v = $VERBOSE
-      $VERBOSE = nil
-      RubyVM::AbstractSyntaxTree.of(block)
-    ensure
-      $VERBOSE = v
+      suppress_warning do
+        RubyVM::AbstractSyntaxTree.of(block)
+      end
     end
 
     def self.proc_to_iseq(block)

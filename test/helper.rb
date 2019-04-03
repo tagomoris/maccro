@@ -1,6 +1,14 @@
 require "test/unit"
 $LOAD_PATH << File.join(__dir__, "..", "lib")
 
+def suppress_warning
+  v = $VERBOSE
+  $VERBOSE = nil
+  yield
+ensure
+  $VERBOSE = v
+end
+
 def parse_to_ast(code)
   v = $VERBOSE
   $VERBOSE = nil
