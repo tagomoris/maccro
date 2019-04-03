@@ -1,4 +1,4 @@
 require "maccro/builtin"
 
-Maccro::Builtin.enable_all
-# TODO: enable all TracePoint hooks
+Maccro::Builtin.register_all
+Maccro.enable

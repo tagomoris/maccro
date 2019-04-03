@@ -44,21 +44,21 @@ module Maccro
       mathematic_intervals: [:open_interval, :closed_interval, :left_closed_interval, :right_closed_interval],
     }.freeze
 
-    def self.enable(name)
+    def self.register(name)
       if RULES.has_key?(name)
         before, after, options = RULES[name]
         options ||= {}
         Maccro.register(name, before, after, under: options.fetch(:under, nil), safe_reference: options.fetch(:safe_reference, false))
       elsif RULE_GROUPS.has_key?(name)
         RULE_GROUPS[name].each do |rule_name|
-          enable(rule_name)
+          register(rule_name)
         end
       end
     end
 
-    def self.enable_all
+    def self.register_all
       RULES.each_key do |name|
-        enable(name)
+        register(name)
       end
     end
   end
