@@ -12,4 +12,12 @@ class MaccroTestCase::MyClass
   end
 
   def method_to_test_stack_trace(x); raise "14:39" if 2 > x > 1; "a"; end
+
+  def self.method_to_test_singleton(i)
+    if 100 < i < 200
+      "yay"
+    else
+      "boo"
+    end
+  end
 end

@@ -6,7 +6,7 @@ class MaccroTestCase < ::Test::Unit::TestCase
     require_relative "myclass"
   end
 
-  test 'apply macro definitions' do
+  test 'apply macro rules' do
     Maccro.register(:test_double_less_than_v, 'v1 < v2 < v3', 'v1 < v2 && v2 < v3')
     Maccro.register(:test_double_less_than_or_equal_to_e, 'e1 <= e2 <= e3', 'e1 <= e2 && e2 <= e3')
     Maccro.apply(MaccroTestCase::MyClass, MaccroTestCase::MyClass.instance_method(:method_to_test_apply))
@@ -28,5 +28,13 @@ class MaccroTestCase < ::Test::Unit::TestCase
 
     assert_equal "14:39", e.message
     assert_match /myclass.rb:14:in `method_to_test_stack_trace'\z/, e.backtrace.first
+  end
+
+  test 'apply macro rules on singleton methods' do
+    Maccro.register(:test_double_less_than_v, 'v1 < v2 < v3', 'v1 < v2 && v2 < v3')
+    Maccro.register(:test_double_less_than_or_equal_to_e, 'e1 <= e2 <= e3', 'e1 <= e2 && e2 <= e3')
+    Maccro.apply(MaccroTestCase::MyClass, MaccroTestCase::MyClass.singleton_method(:method_to_test_singleton))
+
+    assert_equal "yay", MaccroTestCase::MyClass.method_to_test_singleton(150)
   end
 end
