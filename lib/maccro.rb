@@ -19,7 +19,7 @@ module Maccro
     @@dic[name] = Rule.new(name, before, after, under: under, safe_reference: safe_reference)
   end
 
-  def self.apply(mojule, method, verbose: false, from_trace: false)
+  def self.apply(mojule, method, rules: @@dic, verbose: false, from_trace: false, get_code: false)
     # Maccro.apply(X, X.instance_method(:yay), verbose: true)
     if !method.source_location
       raise "Native method can't be redefined"
@@ -49,7 +49,7 @@ module Maccro
     source = nil
     rewrite_method_code_range = nil
 
-    @@dic.each_pair do |name, rule|
+    rules.each_pair do |name, rule|
       if matched = rule.match(ast)
         if !source || !path
           iseq ||= CodeUtil.proc_to_iseq(method)
@@ -73,6 +73,7 @@ module Maccro
 
     if source && path && rewrite_method_code_range
       eval_source = (" " * first_column) + rewrite_method_code_range.get(source) # restore the original indentation
+      return eval_source if get_code
       puts eval_source if verbose
       CodeUtil.suppress_warning do
         mojule.module_eval(eval_source, path, first_lineno)
