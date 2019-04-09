@@ -73,9 +73,30 @@ module Maccro
       ]
     }.freeze
 
+    def self.rule(name)
+      return nil unless RULES.has_key?(name)
+      before, after, options = RULES.fetch(name)
+      options ||= {}
+      Rule.new(name, before, after, under: options.fetch(:under, nil), safe_reference: options.fetch(:safe_reference, false))
+    end
+
+    def self.rules(*names)
+      rules = {}
+      names.each do |name|
+        if RULES.has_key?(name)
+          rules[name] = rule(name)
+        elsif RULE_GROUPS.has_key?(name)
+          RULE_GROUPS[name].each do |n|
+            rules[n] = rule(n)
+          end
+        end
+      end
+      rules
+    end
+
     def self.register(name)
       if RULES.has_key?(name)
-        before, after, options = RULES[name]
+        before, after, options = RULES.fetch(name)
         options ||= {}
         Maccro.register(name, before, after, under: options.fetch(:under, nil), safe_reference: options.fetch(:safe_reference, false))
       elsif RULE_GROUPS.has_key?(name)
