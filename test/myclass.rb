@@ -20,4 +20,18 @@ class MaccroTestCase::MyClass
       "boo"
     end
   end
+
+  def method_to_test_under_fully_qualified(v)
+    [
+      v ** 2,
+      Math.log10(v ** 2),
+    ]
+  end
+
+  def method_to_test_under_with_pattern(v)
+    [
+      v ** 2,
+      Kernel.const_get("Math").log10(v ** 2),
+    ]
+  end
 end

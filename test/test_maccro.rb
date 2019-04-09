@@ -37,4 +37,18 @@ class MaccroTestCase < ::Test::Unit::TestCase
 
     assert_equal "yay", MaccroTestCase::MyClass.method_to_test_singleton(150)
   end
+
+  test 'apply macro rules with under option, fully qualified' do
+    Maccro.register(:test_power_2_to_power_4_under_log10, 'v1 ** 2', 'v1 ** 4', under: 'Math.log10($TARGET)')
+    Maccro.apply(MaccroTestCase::MyClass, MaccroTestCase::MyClass.instance_method(:method_to_test_under_fully_qualified))
+
+    assert_equal [10**2, Math.log10(10**4)], MaccroTestCase::MyClass.new.method_to_test_under_fully_qualified(10)
+  end
+
+  test 'apply macro rules with under option, with pattern' do
+    Maccro.register(:test_power_2_to_power_4_under_log10, 'v1 ** 2', 'v1 ** 4', under: 'e1.log10($TARGET)')
+    Maccro.apply(MaccroTestCase::MyClass, MaccroTestCase::MyClass.instance_method(:method_to_test_under_with_pattern))
+
+    assert_equal [10**2, Math.log10(10**4)], MaccroTestCase::MyClass.new.method_to_test_under_fully_qualified(10)
+  end
 end
