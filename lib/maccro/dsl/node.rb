@@ -72,5 +72,15 @@ module Maccro
         placeholders[@name] = ast.to_code_range
       end
     end
+
+    class AnyNode < Node
+      def match?(node)
+        true
+      end
+
+      def capture(ast, placeholders)
+        placeholders[:__target__] = ast
+      end
+    end
   end
 end

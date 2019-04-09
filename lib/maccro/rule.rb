@@ -16,18 +16,39 @@ module Maccro
       # TODO: check a placeholder exists in @before just once
       # TODO: check all placeholder in @after exist in @before
       # (placeholders in @before are not required to exist in @after, because it may be removed)
+      # TODO: check $TARGET exists in under just once
 
       @matcher = DSL.matcher(before)
+      @pruner = under && DSL.matcher(under) || nil
     end
 
     def match(ast)
-      # TODO: implement @under
       matches = []
-      dig_match(matches, ast)
-      if matches.empty?
-        nil
+
+      if @pruner
+        dig_prune(matches, ast)
       else
-        Matched.new(matches)
+        dig_match(matches, ast)
+      end
+
+      return nil if matches.empty?
+
+      Matched.new(matches)
+    end
+
+    def dig_prune(matches, ast)
+      if @pruner.match?(ast)
+        placeholders = {}
+        @pruner.capture(ast, placeholders)
+        dig_match(matches, placeholders[:__target__])
+      elsif ast.respond_to?(:children)
+        ast.children.each do |c|
+          dig_prune(matches, c)
+        end
+      elsif ast.respond_to?(:each)
+        ast.each do |i|
+          dig_prune(matches, i)
+        end
       end
     end
 

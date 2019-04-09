@@ -24,14 +24,24 @@ module Maccro
 
       # ast_node.is_a?(RubyVM::AbstractSyntaxTree::Node)
       ast_node.extend ASTNodeWrapper
-      if ast_node.type == :VCALL && self.placeholder_name?(ast_node.children.first)
-        return self.placeholder_to_matcher_node(ast_node)
+      if is_placeholder?(ast_node)
+        return placeholder_to_matcher_node(ast_node)
       end
 
       ast_node.children.each_with_index do |n, i|
         ast_node.children[i] = ast_node_to_dsl_node(n)
       end
       ast_node
+    end
+
+    def self.is_placeholder?(node)
+      if node.type == :VCALL && placeholder_name?(node.children.first)
+        true
+      elsif node.type == :GVAR && node.children.first == :'$TARGET'
+        true
+      else
+        false
+      end
     end
 
     def self.placeholder_name?(sym)
@@ -41,13 +51,15 @@ module Maccro
       (sym.to_s =~ /^[ev][1-9]\d*$/).!.!
     end
 
-    def self.placeholder_to_matcher_node(placeholder_vcall)
-      name = placeholder_vcall.children.first.to_s
+    def self.placeholder_to_matcher_node(placeholder_node)
+      name = placeholder_node.children.first.to_s
       case name
+      when '$TARGET'
+        AnyNode.new(name, placeholder_node.to_code_range)
       when /^v([1-9]\d*)$/
-        Value.new(name, placeholder_vcall.to_code_range)
+        Value.new(name, placeholder_node.to_code_range)
       when /^e([1-9]\d*)$/
-        Expression.new(name, placeholder_vcall.to_code_range)
+        Expression.new(name, placeholder_node.to_code_range)
       else
         raise "BUG: unregistered placeholder name `#{name}`"
       end

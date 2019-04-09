@@ -13,9 +13,6 @@ module Maccro
     # Maccro.register(:double_greater_than, 'e1 > e2 > e3', 'e1 > e2 && e2 > e3')
     # Maccro.register(:double_greater_than, 'e1 < e2 < e3', 'e1 < e2 && e2 < e3', safe_reference: true)
     # Maccro.register(:activerecord_where_equal, 'v1 = v2', 'v1 => v2', under: 'e.where($TARGET)')
-    if under
-      raise NotImplementedError, "TODO: implement it"
-    end
     if safe_reference
       raise NotImplementedError, "TODO: implement it"
     end      
