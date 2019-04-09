@@ -61,6 +61,9 @@ module Maccro
       end
 
       def match?(node)
+        # literals are not Node in any cases
+        return false unless node.respond_to?(:type)
+
         if self.class.respond_to?(:match?)
           self.class.match?(node)
         else
