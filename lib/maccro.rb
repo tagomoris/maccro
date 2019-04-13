@@ -4,6 +4,8 @@ require_relative "./maccro/dsl"
 require_relative "./maccro/rule"
 require_relative "./maccro/code_util"
 
+require_relative "./maccro/kernel_ext"
+
 module Maccro
   @@dic = {}
   @@trace_global = nil
