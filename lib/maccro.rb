@@ -85,25 +85,32 @@ module Maccro
 
   # TODO: check visibility: private method is still private method even after module_eval?
 
-  # TODO: add a feature to enable single rule in a specified path (or a module)
-
-  def self.enable(target: nil)
-    if target
-      enable_trace(target: target)
+  def self.enable(target: nil, path: nil, rules: nil)
+    if target || path
+      enable_trace(target: target, path: path, rule_names: rules)
     else
+      if rules
+        raise "Cannot enable globally with specific rules"
+      end
       enable_trace(globally: true)
     end
   end
 
-  def self.enable_trace(target: nil, globally: false)
+  def self.enable_trace(target: nil, path: nil, globally: false, rule_names: nil)
     if globally && @@trace_global
       return nil
     end
 
-    trace = TracePoint.new(:end) do |tp|
-      next unless globally || target == tp.self
+    if rule_names
+      rules = rule_names.map{|n| [n, @@dic[n]] }.to_h
+    else
+      rules = @@dic
+    end
 
+    trace = TracePoint.new(:end) do |tp|
       current_location = tp.path
+      next unless globally || target == tp.self || path == current_location
+
       this = tp.self
 
       methods = (
@@ -117,8 +124,9 @@ module Maccro
       methods.each do |method|
         source_location = method.source_location
         next if !source_location # native method
-        next if source_location.first == '-e' || source_location.first != current_location
-        Maccro.apply(this, method, from_trace: true)
+        next if source_location.first == '-e'
+        next if source_location.first != current_location # methods defined in other file
+        Maccro.apply(this, method, rules: rules, from_trace: true)
       end
     end
 
