@@ -2,17 +2,12 @@ require_relative "helper"
 require "maccro/rule"
 require "maccro/code_range"
 
-begin
-  v = $VERBOSE
-  $VERBOSE = nil
-  require_relative "method_examples"
-ensure
-  $VERBOSE = v
-end
-
-EXAMPLE_PATH = File.join(__dir__, "method_examples.rb")
-
 class RuleTestCase < ::Test::Unit::TestCase
+  EXAMPLE_PATH = File.join(__dir__, "examples", "method_examples.rb")
+  suppress_warning do
+    require_relative "examples/method_examples"
+  end
+
   def range(a, b, c, d)
     Maccro::CodeRange.new(a, b, c, d)
   end

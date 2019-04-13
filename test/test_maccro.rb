@@ -3,7 +3,7 @@ require "maccro"
 
 class MaccroTestCase < ::Test::Unit::TestCase
   suppress_warning do
-    require_relative "myclass"
+    require_relative "examples/myclass"
   end
 
   test 'apply macro rules' do
@@ -27,7 +27,7 @@ class MaccroTestCase < ::Test::Unit::TestCase
     end
 
     assert_equal "14:39", e.message
-    assert_match /myclass.rb:14:in `method_to_test_stack_trace'\z/, e.backtrace.first
+    assert_match(/myclass.rb:14:in `method_to_test_stack_trace'\z/, e.backtrace.first)
   end
 
   test 'apply macro rules on singleton methods' do
