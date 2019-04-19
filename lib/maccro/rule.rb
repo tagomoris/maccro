@@ -13,10 +13,11 @@ module Maccro
       @under = under
       @safe_reference = safe_reference
 
-      # TODO: check a placeholder exists in @before just once
       # TODO: check all placeholder in @after exist in @before
       # (placeholders in @before are not required to exist in @after, because it may be removed)
       # TODO: check $TARGET exists in under just once
+
+      # TODO: implement a matcher in @before matches in multi times
 
       @matcher = DSL.matcher(before)
       @pruner = under && DSL.matcher(under) || nil
