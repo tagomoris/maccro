@@ -21,6 +21,8 @@ module Maccro
     @@dic[name] = Rule.new(name, before, after, under: under, safe_reference: safe_reference)
   end
 
+  # TODO: apply_to_proc
+
   def self.apply(mojule, method, rules: @@dic, verbose: false, from_trace: false, get_code: false)
     # Maccro.apply(X, X.instance_method(:yay), verbose: true)
     if !method.source_location
