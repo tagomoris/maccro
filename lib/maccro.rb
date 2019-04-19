@@ -91,8 +91,6 @@ module Maccro
     end
   end
 
-  def self.apply_rules_on(ast, is_singleton_method: 
-
   # TODO: check visibility: private method is still private method even after module_eval?
 
   def self.enable(target: nil, path: nil, rules: nil)
