@@ -8,6 +8,22 @@ class BuiltinExamples
     end
   end
 
+  def m_less_than_3(x, y)
+    if true && 1 < x < y < 4
+      true
+    else
+      false
+    end
+  end
+
+  def m_less_than_and_equal_to
+    if true && 1 <= 2 < 3 < 4 <= 4 < 5
+      true
+    else
+      false
+    end
+  end
+
   # less_than_or_equal_to_2: ['e1 <= e2 <= e3', '(e1 <= e2 && e2 <= e3)'],
   # greater_than_2: ['e1 > e2 > e3', '(e1 > e2 && e2 > e3)'],
   # greater_than_or_equal_to_2: ['e1 >= e2 >= e3', '(e1 >= e2 && e2 >= e3)'],

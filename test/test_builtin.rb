@@ -3,7 +3,7 @@ require "maccro/builtin"
 
 class BuiltinTestCase < ::Test::Unit::TestCase
   suppress_warning do
-    require_relative "builtin_examples"
+    require_relative "examples/builtin"
   end
 
   sub_test_case 'continuing less/greater-than or equal-to' do
@@ -11,6 +11,40 @@ class BuiltinTestCase < ::Test::Unit::TestCase
       rules = Maccro::Builtin.rules(:less_than_2)
       Maccro.apply(BuiltinExamples, BuiltinExamples.instance_method(:m_less_than_2), rules: rules)
       assert BuiltinExamples.new.m_less_than_2(0, 2)
+    end
+
+    test 'less_than_3' do
+      rules = Maccro::Builtin.rules(:less_than_2)
+      code = Maccro.apply(BuiltinExamples, BuiltinExamples.instance_method(:m_less_than_3), rules: rules, get_code: true)
+      expected_code = <<CODE.chomp
+  def m_less_than_3(x, y)
+    if true && ((1 < x && x < y) && y < 4)
+      true
+    else
+      false
+    end
+  end
+CODE
+      assert_equal expected_code, code
+      Maccro.apply(BuiltinExamples, BuiltinExamples.instance_method(:m_less_than_3), rules: rules)
+      assert BuiltinExamples.new.m_less_than_3(2, 3)
+    end
+
+    test 'combination_less_than_or_equal_to' do
+      rules = Maccro::Builtin.rules(:less_than_2, :less_than_or_equal_to_2, :less_than_and_equal_to_a, :less_than_and_equal_to_b)
+      code = Maccro.apply(BuiltinExamples, BuiltinExamples.instance_method(:m_less_than_and_equal_to), rules: rules, get_code: true)
+      expected_code = <<CODE.chomp
+  def m_less_than_and_equal_to
+    if true && ((1 <= 2 && 2 < 3) && (3 < 4 && 4 <= 4) && 4 < 5)
+      true
+    else
+      false
+    end
+  end
+CODE
+      assert_equal expected_code, code
+      Maccro.apply(BuiltinExamples, BuiltinExamples.instance_method(:m_less_than_and_equal_to), rules: rules)
+      assert BuiltinExamples.new.m_less_than_and_equal_to
     end
   end
 

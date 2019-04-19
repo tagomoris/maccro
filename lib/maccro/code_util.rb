@@ -66,6 +66,20 @@ module Maccro
       end
     end
 
+    def self.get_source_path_iseq(method)
+      iseq ||= CodeUtil.proc_to_iseq(method)
+      if !iseq
+        raise "Native methods can't be redefined"
+      end
+      path ||= iseq.absolute_path
+      if !path # STDIN or -e
+        raise "Methods from stdin or -e can't be redefined"
+      end
+      source ||= File.read(path)
+
+      return source, path, iseq
+    end
+
     def self.get_method_node(node, method_name, lineno, column, singleton_method: false)
       if singleton_method
         # TODO: consider receiver filter

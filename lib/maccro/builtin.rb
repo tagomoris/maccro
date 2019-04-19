@@ -11,18 +11,12 @@ module Maccro
       # continuing less/greater-than or equal-to
       less_than_2: ['e1 < e2 < e3', '(e1 < e2 && e2 < e3)'],
       less_than_or_equal_to_2: ['e1 <= e2 <= e3', '(e1 <= e2 && e2 <= e3)'],
+      less_than_and_equal_to_a: ['e1 <= e2 < e3', '(e1 <= e2 && e2 < e3)'],
+      less_than_and_equal_to_b: ['e1 < e2 <= e3', '(e1 < e2 && e2 <= e3)'],
       greater_than_2: ['e1 > e2 > e3', '(e1 > e2 && e2 > e3)'],
       greater_than_or_equal_to_2: ['e1 >= e2 >= e3', '(e1 >= e2 && e2 >= e3)'],
-
-      less_than_3: ['e1 < e2 < e3 < e4', '(e1 < e2 && e2 < e3 && e3 < e4)'],
-      less_than_or_equal_to_3: ['e1 <= e2 <= e3 <= e4', '(e1 <= e2 && e2 <= e3 && e3 <= e4)'],
-      greater_than_3: ['e1 > e2 > e3 > e4', '(e1 > e2 && e2 > e3 && e3 > e4)'],
-      greater_than_or_equal_to_3: ['e1 >= e2 >= e3 >= e4', '(e1 >= e2 && e2 >= e3 && e3 >= e4)'],
-
-      less_than_4: ['e1 < e2 < e3 < e4 < e5', '(e1 < e2 && e2 < e3 && e3 < e4 && e4 < e5)'],
-      less_than_or_equal_to_4: ['e1 <= e2 <= e3 <= e4 <= e5', '(e1 <= e2 && e2 <= e3 && e3 <= e4 && e4 <= e5)'],
-      greater_than_4: ['e1 > e2 > e3 > e4 > e5', '(e1 > e2 && e2 > e3 && e3 > e4 && e4 > e5)'],
-      greater_than_or_equal_to_4: ['e1 >= e2 >= e3 >= e4', '(e1 >= e2 && e2 >= e3 && e3 >= e4 && e4 >= e5)'],
+      greater_than_and_equal_to_a: ['e1 >= e2 > e3', '(e1 >= e2 && e2 > e3)'],
+      greater_than_and_equal_to_b: ['e1 > e2 >= e3', '(e1 > e2 && e2 >= e3)'],
 
       # mathematic intervals
       open_interval: ['e1 < e2 < e3', '(e1 < e2 && e2 < e3)'],
@@ -54,13 +48,9 @@ module Maccro
 
     RULE_GROUPS = {
       inequality_operators: [
-        :less_than_2, :less_than_or_equal_to_2, :greater_than_2, :greater_than_or_equal_to_2,
-        :less_than_3, :less_than_or_equal_to_3, :greater_than_3, :greater_than_or_equal_to_3,
-        :less_than_4, :less_than_or_equal_to_4, :greater_than_4, :greater_than_or_equal_to_4,
+        :less_than_2, :less_than_or_equal_to_2, :less_than_and_equal_to_a, :less_than_and_equal_to_b,
+        :greater_than_2, :greater_than_or_equal_to_2, :greater_than_and_equal_to_a, :greater_than_and_equal_to_b,
       ],
-      inequality_operators_2: [:less_than_2, :less_than_or_equal_to_2, :greater_than_2, :greater_than_or_equal_to_2],
-      inequality_operators_3: [:less_than_3, :less_than_or_equal_to_3, :greater_than_3, :greater_than_or_equal_to_3],
-      inequality_operators_4: [:less_than_4, :less_than_or_equal_to_4, :greater_than_4, :greater_than_or_equal_to_4],
 
       mathematic_intervals: [:open_interval, :closed_interval, :left_closed_interval, :right_closed_interval],
 

@@ -49,29 +49,35 @@ module Maccro
 
     iseq = nil
     path = nil
-
     source = nil
     rewrite_method_code_range = nil
 
-    rules.each_pair do |name, rule|
-      if matched = rule.match(ast)
-        if !source || !path
-          iseq ||= CodeUtil.proc_to_iseq(method)
-          if !iseq
-            raise "Native methods can't be redefined"
-          end
-          path ||= iseq.absolute_path
-          if !path # STDIN or -e
-            raise "Methods from stdin or -e can't be redefined"
-          end
-          source ||= File.read(path)
-        end
+    rewrite_happens = false
+    first_time = true
 
-        source = matched.rewrite(source)
+    while rewrite_happens || first_time
+      rewrite_happens = false
+      first_time = false
 
-        ast = CodeUtil.get_method_node(CodeUtil.parse_to_ast(source), method.name, first_lineno, first_column, singleton_method: is_singleton_method)
-        CodeUtil.extend_tree_with_wrapper(ast)
-        rewrite_method_code_range = CodeRange.from_node(ast)
+      rules.each_pair do |_name, this_rule|
+        try_once = ->(rule) {
+          matched = rule.match(ast)
+          next unless matched
+
+          if !source || !path || !iseq
+            source, path, iseq = CodeUtil.get_source_path_iseq(method)
+          end
+
+          source = matched.rewrite(source)
+          ast = CodeUtil.get_method_node(CodeUtil.parse_to_ast(source), method.name, first_lineno, first_column, singleton_method: is_singleton_method)
+          CodeUtil.extend_tree_with_wrapper(ast)
+          rewrite_method_code_range = CodeRange.from_node(ast)
+          rewrite_happens = true
+          try_once.call(this_rule)
+        }
+        try_once.call(this_rule)
+
+        break if rewrite_happens # to retry all rules
       end
     end
 

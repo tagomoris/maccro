@@ -48,7 +48,6 @@ Maccro features below are not supported yet:
 
 * Non-idempotent method calls
 * Local variable name matching (currntly, local variable name in before/after could be referred as VCALL)
-* Applying macro rules Recursively
 * Specifying a type of literal by placeholders
 * Handling method visibilities
 * Rewriting singleton methods with non-self receiver
