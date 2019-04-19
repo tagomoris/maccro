@@ -25,14 +25,14 @@ module Maccro
       right_closed_interval: ['e1 < e2 <= e3', '(e1 < e2 && e2 <= e3)'],
 
       # ActiveRecord utilities
-      ar_where_in_range_exclusive: ['e1 <= v1 < e2', '{v1 => [(e1)...(e2)]}', {under: 'e1.where($TARGET)'}],
-      ar_where_in_range_inclusive: ['e1 <= v1 <= e2', '{v1 => [(e1)..(e2)]}', {under: 'e1.where($TARGET)'}],
-      ar_where_equal_to: ['v1 == e1', '{v1 => e1}', {under: 'e1.where($TARGET)'}],
-      ar_where_not_equal_to: ['v1 != e1', '["#{v1} != ?", e1]', {under: 'e1.where($TARGET)'}],
-      ar_where_larger_than: ['v1 > e1', '["#{v1} > ?", e1]', {under: 'e1.where($TARGET)'}],
-      ar_where_larger_than_or_equal_to: ['v1 >= e1', '["#{v1} >= ?", e1]', {under: 'e1.where($TARGET)'}],
-      ar_where_less_than: ['v1 < e1', '["#{v1} < ?", e1]', {under: 'e1.where($TARGET)'}],
-      ar_where_less_than_or_equal_to: ['v1 <= e1', '["#{v1} <= ?", e1]', {under: 'e1.where($TARGET)'}],
+      ar_where_in_range_exclusive: ['e1 <= y1 < e2', '{y1 => [(e1)...(e2)]}', {under: 'e1.where($TARGET)'}],
+      ar_where_in_range_inclusive: ['e1 <= y1 <= e2', '{y1 => [(e1)..(e2)]}', {under: 'e1.where($TARGET)'}],
+      ar_where_equal_to: ['y1 == e1', '{y1 => e1}', {under: 'e1.where($TARGET)'}],
+      ar_where_not_equal_to: ['y1 != e1', '["#{y1} != ?", e1]', {under: 'e1.where($TARGET)'}],
+      ar_where_larger_than: ['y1 > e1', '["#{y1} > ?", e1]', {under: 'e1.where($TARGET)'}],
+      ar_where_larger_than_or_equal_to: ['y1 >= e1', '["#{y1} >= ?", e1]', {under: 'e1.where($TARGET)'}],
+      ar_where_less_than: ['y1 < e1', '["#{y1} < ?", e1]', {under: 'e1.where($TARGET)'}],
+      ar_where_less_than_or_equal_to: ['y1 <= e1', '["#{y1} <= ?", e1]', {under: 'e1.where($TARGET)'}],
       # TODO: and-or mixed query
       ar_and_chain_5: ['e1.where((e2 && e3 and e4 and e5 and e6 and e7))', 'e1.where(e2).where(e3).where(e4).where(e5).where(e6).where(e7)'],
       ar_and_chain_4: ['e1.where((e2 and e3 and e4 and e5 and e6))', 'e1.where(e2).where(e3).where(e4).where(e5).where(e6)'],

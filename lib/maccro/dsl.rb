@@ -1,4 +1,5 @@
 require_relative 'dsl/node'
+require_relative 'dsl/literal'
 require_relative 'dsl/value'
 require_relative 'dsl/assign'
 require_relative 'dsl/expression'
@@ -47,22 +48,28 @@ module Maccro
     def self.placeholder_name?(sym)
       # Expression: "eN"
       # Value: "vN"
+      # String: "sN"
+      # Symbol: "yN"
+      # Number: "nN"
+      # Regular expression: "rN"
       # N index is 1 origin
-      (sym.to_s =~ /^[ev][1-9]\d*$/).!.!
+      (sym.to_s =~ /^[evsynr][1-9]\d*$/).!.!
     end
 
     def self.placeholder_to_matcher_node(placeholder_node)
       name = placeholder_node.children.first.to_s
-      case name
-      when '$TARGET'
-        AnyNode.new(name, placeholder_node.to_code_range)
-      when /^v([1-9]\d*)$/
-        Value.new(name, placeholder_node.to_code_range)
-      when /^e([1-9]\d*)$/
-        Expression.new(name, placeholder_node.to_code_range)
-      else
-        raise "BUG: unregistered placeholder name `#{name}`"
-      end
+      nodeClass = case name
+                  when '$TARGET' then AnyNode
+                  when /^s([1-9]\d*)$/ then String
+                  when /^y([1-9]\d*)$/ then Symbol
+                  when /^n([1-9]\d*)$/ then Number
+                  when /^r([1-9]\d*)$/ then RegularExpression
+                  when /^v([1-9]\d*)$/ then Value
+                  when /^e([1-9]\d*)$/ then Expression
+                  else
+                    raise "BUG: unregistered placeholder name `#{name}`"
+                  end
+      nodeClass.new(name, placeholder_node.to_code_range)
     end
   end
 end
