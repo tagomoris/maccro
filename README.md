@@ -3,10 +3,11 @@
 Maccro is a library to introduce macro (dynamic code rewriting), written in Ruby 100%.
 
 ```ruby
+require "maccro"
 # name, before, after
 Maccro.register(:double_less_than, 'e1 < e2 < e3', 'e1 < e2 && e2 < e3')
 
-# This rewrites this code
+# This rewrites the code below
 class Foo
   def foo(v)
     if 1 < v < 2
@@ -23,6 +24,28 @@ class Foo
     if 1 < v && v < 2
       "hit!"
     end
+  end
+end
+```
+
+Another example is about ActiveRecord queries.
+
+```ruby
+require "maccro/builtin"
+Maccro::Builtin.register(:activerecord_utilities)
+Maccro.enable(path: __FILE__)
+
+# This rewrites the code below
+class Users < ApplicationRecord
+  def not_admin_or_under_20_age_users
+    Users.where(:priv != "admin || :age < 20)
+  end
+end
+
+# To this automatically
+class Users < ApplicationRecord
+  def not_admin_or_under_20_age_users
+    Users.where('priv != ?', "admin").or(Users.where('age < ?', 20))
   end
 end
 ```
