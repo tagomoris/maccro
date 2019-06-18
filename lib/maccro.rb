@@ -1,5 +1,6 @@
 require_relative "./maccro/version"
 
+require_relative "./maccro/impl"
 require_relative "./maccro/dsl"
 require_relative "./maccro/rule"
 require_relative "./maccro/code_util"
@@ -45,37 +46,10 @@ module Maccro
     if !ast
       raise "Failed to load AST nodes - source file may be invisible"
     end
-    CodeUtil.extend_tree_with_wrapper(ast)
-
-    first_lineno = ast.first_lineno
-    first_column = ast.first_column
-
     source, _ = CodeUtil.get_source_path(block)
-
-    rewrite_happens = false
-    first_time = true
-
-    while rewrite_happens || first_time
-      rewrite_happens = false
-      first_time = false
-
-      try_once = ->(rule) {
-        matched = rule.match(ast)
-        next unless matched
-
-        source = matched.rewrite(source)
-        ast = CodeUtil.get_proc_node(CodeUtil.parse_to_ast(source), first_lineno, first_column)
-        CodeUtil.extend_tree_with_wrapper(ast)
-        rewrite_happens = true
-        try_once.call(rule)
-      }
-
-      rules.each_pair do |_name, this_rule|
-        try_once.call(this_rule)
-        break if rewrite_happens # to retry all rules
-      end
+    ast, source = Impl.update_by_rules(ast, source, rules) do |src, lineno, column|
+      CodeUtil.get_proc_node(CodeUtil.parse_to_ast(src), lineno, column)
     end
-
     eval_source = if ast.type == :SCOPE
                     CodeUtil.convert_scope_to_lambda(CodeRange.from_node(ast).get(source))
                   else
@@ -103,12 +77,7 @@ module Maccro
     end
     # This node should be SCOPE node (just under DEFN or DEFS)
     # But its code range is equal to code range of DEFN/DEFS
-    CodeUtil.extend_tree_with_wrapper(ast)
-
     is_singleton_method = (mojule != method.owner)
-
-    first_lineno = ast.first_lineno
-    first_column = ast.first_column
 
     source, path = CodeUtil.get_source_path(method)
     # The reason to get the entire source code is to capture/rewrite
@@ -116,29 +85,13 @@ module Maccro
 
     rewrite_method_code_range = nil
 
-    rewrite_happens = false
-    first_time = true
-
-    while rewrite_happens || first_time
-      rewrite_happens = false
-      first_time = false
-
-      try_once = ->(rule) {
-        matched = rule.match(ast)
-        next unless matched
-
-        source = matched.rewrite(source)
-        ast = CodeUtil.get_method_node(CodeUtil.parse_to_ast(source), method.name, first_lineno, first_column, singleton_method: is_singleton_method)
-        CodeUtil.extend_tree_with_wrapper(ast)
-        rewrite_happens = true
-        try_once.call(rule)
-      }
-
-      rules.each_pair do |_name, this_rule|
-        try_once.call(this_rule)
-        break if rewrite_happens # to retry all rules
-      end
+    ast, source = Impl.update_by_rules(ast, source, rules) do |src, lineno, column|
+      CodeUtil.get_method_node(CodeUtil.parse_to_ast(src), method.name, lineno, column, singleton_method: is_singleton_method)
     end
+
+    # required to restore code positions of the method definition
+    first_lineno = ast.first_lineno
+    first_column = ast.first_column
 
     rewrite_method_code_range = CodeRange.from_node(ast)
     if source && path && rewrite_method_code_range
@@ -146,7 +99,7 @@ module Maccro
       return eval_source if get_code
       puts eval_source if verbose
       CodeUtil.suppress_warning do
-        mojule.module_eval(eval_source, path, first_lineno)
+        mojule.module_eval(eval_source, path, ast.first_lineno)
       end
     end
   end
