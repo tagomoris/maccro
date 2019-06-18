@@ -110,8 +110,10 @@ module Maccro
     first_lineno = ast.first_lineno
     first_column = ast.first_column
 
-    path = nil
-    source = nil
+    source, path = CodeUtil.get_source_path(method)
+    # The reason to get the entire source code is to capture/rewrite
+    # the exact code snippet using CodeRange (positions in the entire file)
+
     rewrite_method_code_range = nil
 
     rewrite_happens = false
@@ -125,16 +127,9 @@ module Maccro
         matched = rule.match(ast)
         next unless matched
 
-        if !source || !path
-          # The reason to get the entire source code is to capture/rewrite
-          # the exact code snippet using CodeRange (positions in the entire file)
-          source, path = CodeUtil.get_source_path(method)
-        end
-
         source = matched.rewrite(source)
         ast = CodeUtil.get_method_node(CodeUtil.parse_to_ast(source), method.name, first_lineno, first_column, singleton_method: is_singleton_method)
         CodeUtil.extend_tree_with_wrapper(ast)
-        rewrite_method_code_range = CodeRange.from_node(ast)
         rewrite_happens = true
         try_once.call(rule)
       }
@@ -145,6 +140,7 @@ module Maccro
       end
     end
 
+    rewrite_method_code_range = CodeRange.from_node(ast)
     if source && path && rewrite_method_code_range
       eval_source = (" " * first_column) + rewrite_method_code_range.get(source) # restore the original indentation
       return eval_source if get_code
