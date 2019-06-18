@@ -108,11 +108,13 @@ module Maccro
           return node
         end
       when :ITER # method call with block (iterator?)
-        if node.children[0].type == :FCALL \ # lambda{}, proc{}
+        # lambda{}, proc{}
+        if node.children[0].type == :FCALL \
            && (node.children[0].children[0] == :lambda || node.children[0].children[0] == :proc) \
            && is_target_scope.call(node.children[1])
           return node
-        elsif node.children[0].type == :CALL \ # Kernel.lambda, Kernel.proc{}, Proc.new{}
+        # Kernel.lambda, Kernel.proc{}, Proc.new{}
+        elsif node.children[0].type == :CALL \
               && node.children[0].children[0].type == :CONST \
               && (node.children[0].children[0].children[0] == :Kernel && (node.children[0].children[1] == :lambda || node.children[0].children[1] == :proc) \
                   || node.children[0].children[0].children[0] == :Proc && node.children[0].children[1] == :new ) \
