@@ -66,18 +66,73 @@ module Maccro
       end
     end
 
-    def self.get_source_path_iseq(method)
-      iseq ||= CodeUtil.proc_to_iseq(method)
+    def self.convert_scope_to_lambda(scope_source)
+      raise "Scope source must start with '{'" unless scope_source.start_with?('{')
+      raise "Scope source must end with '}'" unless scope_source.end_with?('}')
+
+      if m = scope_source.match(/^\{\s*\|(.*)\|/o)
+        matched_source = m[0]
+        args_source = m[1]
+        return "->(#{args_source})" + scope_source.sub(matched_source, '{')
+      end
+
+      "->" + scope_source
+    end
+
+    def self.get_source_path(block)
+      iseq = CodeUtil.proc_to_iseq(block)
       if !iseq
         raise "Native methods can't be redefined"
       end
-      path ||= iseq.absolute_path
+      path = iseq.absolute_path
       if !path # STDIN or -e
         raise "Methods from stdin or -e can't be redefined"
       end
-      source ||= File.read(path)
+      source = File.read(path)
 
-      return source, path, iseq
+      return source, path
+    end
+
+    def self.get_proc_node(node, lineno, column)
+      return nil unless node.type == :SCOPE
+      dig_proc_node(node, lineno, column)
+    end
+
+    def self.dig_proc_node(node, lineno, column)
+      return nil unless node.is_a?(RubyVM::AbstractSyntaxTree::Node)
+      is_target_scope = ->(n){ n.type == :SCOPE && n.first_lineno == lineno && n.first_column == column }
+
+      case node.type
+      when :LAMBDA # ->(){ }
+        if is_target_scope.call(node.children[0])
+          return node
+        end
+      when :ITER # method call with block (iterator?)
+        if node.children[0].type == :FCALL \ # lambda{}, proc{}
+           && (node.children[0].children[0] == :lambda || node.children[0].children[0] == :proc) \
+           && is_target_scope.call(node.children[1])
+          return node
+        elsif node.children[0].type == :CALL \ # Kernel.lambda, Kernel.proc{}, Proc.new{}
+              && node.children[0].children[0].type == :CONST \
+              && (node.children[0].children[0].children[0] == :Kernel && (node.children[0].children[1] == :lambda || node.children[0].children[1] == :proc) \
+                  || node.children[0].children[0].children[0] == :Proc && node.children[0].children[1] == :new ) \
+              && is_target_scope.call(node.children[1])
+          return node
+        end
+      when :SCOPE # for block parameters
+        if is_target_scope.call(node)
+          return node
+        end
+      end
+
+      if node.respond_to?(:children)
+        node.children.each do |n|
+          r = dig_proc_node(n, lineno, column)
+          return r if r
+        end
+      end
+
+      nil
     end
 
     def self.get_method_node(node, method_name, lineno, column, singleton_method: false)

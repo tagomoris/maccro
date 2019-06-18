@@ -21,10 +21,73 @@ module Maccro
     @@dic[name] = Rule.new(name, before, after, under: under, safe_reference: safe_reference)
   end
 
-  # TODO: apply_to_proc (that supports the list of local variables)
+  def self.clear!
+    @@dic = {}
+  end
 
+  def self.execute(block=nil, rules: @@dic, verbose: false, get_code: false, &block_param)
+    block = block_param if !block && block_param
+    if block.arity > 0
+      raise "Block with parameters can't be executed via Maccro"
+    end
+
+    rewrite(block, rules: rules, verbose: verbose, get_code: get_code).call
+  end
+
+  # Maccro.rewrite(->(){ ... }).call(args)
+  def self.rewrite(block=nil, rules: @@dic, verbose: false, get_code: false, &block_param)
+    block = block_param if !block && block_param
+    if !block.source_location
+      raise "Native block can't be rewritten"
+    end
+
+    ast = CodeUtil.proc_to_ast(block)
+    if !ast
+      raise "Failed to load AST nodes - source file may be invisible"
+    end
+    CodeUtil.extend_tree_with_wrapper(ast)
+
+    first_lineno = ast.first_lineno
+    first_column = ast.first_column
+
+    source, _ = CodeUtil.get_source_path(block)
+
+    rewrite_happens = false
+    first_time = true
+
+    while rewrite_happens || first_time
+      rewrite_happens = false
+      first_time = false
+
+      try_once = ->(rule) {
+        matched = rule.match(ast)
+        next unless matched
+
+        source = matched.rewrite(source)
+        ast = CodeUtil.get_proc_node(CodeUtil.parse_to_ast(source), first_lineno, first_column)
+        CodeUtil.extend_tree_with_wrapper(ast)
+        rewrite_happens = true
+        try_once.call(rule)
+      }
+
+      rules.each_pair do |_name, this_rule|
+        try_once.call(this_rule)
+        break if rewrite_happens # to retry all rules
+      end
+    end
+
+    eval_source = if ast.type == :SCOPE
+                    CodeUtil.convert_scope_to_lambda(CodeRange.from_node(ast).get(source))
+                  else
+                    CodeRange.from_node(ast).get(source)
+                  end
+    return eval_source if get_code
+    puts eval_source if verbose
+    block.binding.eval(eval_source)
+  end
+
+  # Maccro.apply(X, X.instance_method(:yay), verbose: true)
   def self.apply(mojule, method, rules: @@dic, verbose: false, from_trace: false, get_code: false)
-    # Maccro.apply(X, X.instance_method(:yay), verbose: true)
     if !method.source_location
       raise "Native method can't be redefined"
     end
@@ -47,7 +110,6 @@ module Maccro
     first_lineno = ast.first_lineno
     first_column = ast.first_column
 
-    iseq = nil
     path = nil
     source = nil
     rewrite_method_code_range = nil
@@ -59,24 +121,26 @@ module Maccro
       rewrite_happens = false
       first_time = false
 
+      try_once = ->(rule) {
+        matched = rule.match(ast)
+        next unless matched
+
+        if !source || !path
+          # The reason to get the entire source code is to capture/rewrite
+          # the exact code snippet using CodeRange (positions in the entire file)
+          source, path = CodeUtil.get_source_path(method)
+        end
+
+        source = matched.rewrite(source)
+        ast = CodeUtil.get_method_node(CodeUtil.parse_to_ast(source), method.name, first_lineno, first_column, singleton_method: is_singleton_method)
+        CodeUtil.extend_tree_with_wrapper(ast)
+        rewrite_method_code_range = CodeRange.from_node(ast)
+        rewrite_happens = true
+        try_once.call(rule)
+      }
+
       rules.each_pair do |_name, this_rule|
-        try_once = ->(rule) {
-          matched = rule.match(ast)
-          next unless matched
-
-          if !source || !path || !iseq
-            source, path, iseq = CodeUtil.get_source_path_iseq(method)
-          end
-
-          source = matched.rewrite(source)
-          ast = CodeUtil.get_method_node(CodeUtil.parse_to_ast(source), method.name, first_lineno, first_column, singleton_method: is_singleton_method)
-          CodeUtil.extend_tree_with_wrapper(ast)
-          rewrite_method_code_range = CodeRange.from_node(ast)
-          rewrite_happens = true
-          try_once.call(this_rule)
-        }
         try_once.call(this_rule)
-
         break if rewrite_happens # to retry all rules
       end
     end

@@ -34,4 +34,8 @@ class MaccroTestCase::MyClass
       Kernel.const_get("Math").log10(v ** 2),
     ]
   end
+
+  def self.block_to_test_rewrite_1
+    ->(a, b, c){ a > b > c }
+  end
 end
