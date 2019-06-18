@@ -50,6 +50,19 @@ class Users < ApplicationRecord
 end
 ```
 
+Maccro also provides methods to rewrite any code in blocks:
+
+```ruby
+require "maccro"
+Maccro.register(:double_less_than, 'e1 < e2 < e3', 'e1 < e2 && e2 < e3')
+
+does_sandwitch_one = ->(a, b){ a < 1 < b }
+Maccro.rewrite(does_sandwitch_one).call(0, 2) #=> true
+
+# or execute the block parameter immediately
+Maccro.execute{ 0 < 1 < 2 } #=> true
+```
+
 Maccro comes from "Macro" and "Makkuro"(means "pure black" in Japanese).
 
 ### Why Maccro?
@@ -63,15 +76,13 @@ Maccro comes from "Macro" and "Makkuro"(means "pure black" in Japanese).
 Maccro can:
 
 * run with Ruby 2.6 or later
-* rewrite code, only written in methods using `def` keyword, in `module` or `class`
+* rewrite code, only written in methods using `def` keyword, in `module` or `class`, or blocks
 * not rewrite singleton methods, which are used just after definition
 * not rewrite methods from command line option (`-e`) or REPLs (irb/pry)
 
 Maccro features below are not supported yet:
 
 * Non-idempotent method calls
-* Proc rewrite and local variable name matching (currntly, local variable name in before/after could be referred as VCALL)
-* Specifying a type of literal by placeholders
 * Handling method visibilities
 * Rewriting singleton methods with non-self receiver
 * Placeholder validation
@@ -82,7 +93,7 @@ Maccro features below are not supported yet:
 Maccro users do:
 * register rules how to rewrite methods, with code patterns
   * or use built-in rules
-* apply a set of registered rules to a method
+* apply a set of registered rules to a method, or to a block
 * enable automatic applying to a module/class or to a file, or globally
 
 ### Terminology
@@ -181,10 +192,10 @@ Types of placeholders are defined by alphabetic chars:
   * defining methods and singleton methods
   * double and trible colon `::` and `:::`
   * dots and flip-flop
-
-* TODO: implement placeholder for strings
-* TODO: implement placeholder for symbols
-* TODO: implement placeholder for numbers
+* `s`: strings
+* `y`: symbols
+* `n`: numbers
+* `r`: regular expressions
 
 #### Using a placeholder twice (or more)
 
@@ -350,6 +361,8 @@ $ ruby -rmaccro/rewrite_the_world file_to_run.rb
 
 #### `Maccro#register(name, before, after, **kwarg_options)`
 
+Register a macro rule to the global dictionary.
+
 * name: a symbol to represents the rule
 * before: a string of Ruby code which matches to be rewritten
 * after: a string of Ruby code which replaces the matched part
@@ -359,8 +372,28 @@ $ ruby -rmaccro/rewrite_the_world file_to_run.rb
 
 #### `Maccro#apply(module, method, **kwarg_options)`
 
+Apply the registered rules (or a set of rules specified) to a method.
+
 * module: a module/class, the applied method is defined in
 * method: a method object (an instance method or a singleton method)
+* kwarg_options:
+  * rules: an array of symbols of rule names (default: all registered rules)
+
+#### `Maccro#rewrite(proc=nil, **kwarg_options, &block)`
+
+Rewrite a specified proc object by the registered rules (or a set of rules specified) and return the updated (rewritten) proc object.
+
+* proc: a Proc object to be rewritten (exclusive with `block`)
+* block: a block parameter to be rewritten (exclusive with `proc`)
+* kwarg_options:
+  * rules: an array of symbols of rule names (default: all registered rules)
+
+#### `Maccro#execute(proc=nil, **kwarg_options, &block)`
+
+Rewrite a specified proc object and call it immediately. The proc must be with no arguments.
+
+* proc: a Proc object to be rewritten (exclusive with `block`), which must be with no arguments
+* block: a block parameter to be rewritten (exclusive with `proc`), which must be with no arguments
 * kwarg_options:
   * rules: an array of symbols of rule names (default: all registered rules)
 
