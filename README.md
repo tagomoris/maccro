@@ -244,7 +244,7 @@ TODO: implement safe_reference option
 If the rule should rewrite the code which is surrounded a pattern of code, the `under` option will help the situation.
 
 ```ruby
-Macro.register(:rewrite_range_cover, '[e1, v1, e2]', '[(e1)...(e2)].cover?(v1)', under: 'my_dsl_function($TARGET)')'
+Maccro.register(:rewrite_range_cover, '[e1, v1, e2]', '[(e1)...(e2)].cover?(v1)', under: 'my_dsl_function($TARGET)')'
 ```
 
 This rule matches to the code in the code captured by `$TARGET`. The placehodler used in `under` option pattern is independent from the placeholders in "Before" and "After".
