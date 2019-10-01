@@ -38,7 +38,7 @@ Maccro.enable(path: __FILE__)
 # This rewrites the code below
 class Users < ApplicationRecord
   def not_admin_or_under_20_age_users
-    Users.where(:priv != "admin || :age < 20)
+    Users.where(:priv != "admin" || :age < 20)
   end
 end
 
